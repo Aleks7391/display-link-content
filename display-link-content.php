@@ -21,54 +21,51 @@ add_action( 'admin_menu', 'display_link_options_page' );
 function display_link_options_page_html() {
     ?>
     <div class="wrap">
-        <h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
-        <input type="text" name="link_field" id="link_field" value="21">
+        <h1>Display the Link's Content</h1>
+        <form action="<?php echo admin_url('admin-post.php'); ?>" method="POST" id="display_link_form">
+        <input type="text" name="link_field" id="link_field" value="" style="width: 700px;">
+	    <br>
+	    <br>
+        <input type="submit" class="display_link" value="Display">
+        </form>
     </div>
-	<br>
-	<button class="display_link">Display</button>
-	<br>
 	<br>
 	<div id='content_field'></div>
 	<?php
 }
 
-// function display_link_content() {
-// 	$link_value = get_option( 'link_to_display' );
-// 	if ( strpos($link_value['display_link_field'], 'https://www.amazon.com/') !== false ) {
-// 		if (file_get_contents( $link_value['display_link_field'] )) {
-// 			echo (file_get_contents( $link_value['display_link_field'] ));
-// 		} else {
-// 			echo 'Invalid Amazon Link!';
-// 		}
-// 	}
-// }
-
 add_action("wp_ajax_display_content", "display_content");
 
 function display_content() {
-    $link_to_display = 'test link';
-
-	$result['type'] = "success";
-	$result['link'] = $link_to_display;
-
-
-    if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-       $result = json_encode($result);
-       echo $result;
+    $link = $_POST['link'];
+    
+    if ( strpos( strval($link), 'amazon.com' ) ) {
+        if ( $link == get_transient( 'link' ) ) {
+            $contents = get_transient( 'link_contents' );
+    
+            if ( false === $contents ) {
+                $contents = file_get_contents($link);
+                set_transient( 'link_contents', $contents, HOUR_IN_SECONDS );
+            }
+        
+            echo $contents;
+        } else {
+            set_transient( 'link', $link, HOUR_IN_SECONDS );
+            $contents = file_get_contents($link);
+            set_transient( 'link_contents', $contents, HOUR_IN_SECONDS );
+        
+            echo $contents;
+        }
     }
-    else {
-       header("Location: ".$_SERVER["HTTP_REFERER"]);
-    }
-
-    die();
+	wp_die();
 }
 
 add_action( 'init', 'my_script_enqueuer' );
 
 function my_script_enqueuer() {
-   wp_register_script( "my_voter_script", WP_PLUGIN_URL.'/display-link-content/my_voter_script.js', array('jquery') );
-   wp_localize_script( 'my_voter_script', 'myAjax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' )));        
+   wp_register_script( "display_link_script", WP_PLUGIN_URL.'/display-link-content/display_link_script.js', array('jquery') );
+   wp_localize_script( 'display_link_script', 'myAjax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' )));        
 
    wp_enqueue_script( 'jquery' );
-   wp_enqueue_script( 'my_voter_script' );
+   wp_enqueue_script( 'display_link_script' );
 }
