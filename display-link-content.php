@@ -6,24 +6,29 @@
  * Version:     1.0
  */
 
-function display_link_options_page() {
+add_action( 'admin_menu', 'ag_display_link_options_page' );
+
+function ag_display_link_options_page() {
     add_menu_page(
         'Display the Link\'s Content',
         'Link Display Options',
         'manage_options',
         'displaylink',
-        'display_link_options_page_html'
+        'ag_display_link_options_page_html'
     );
 }
  
-add_action( 'admin_menu', 'display_link_options_page' );
  
-function display_link_options_page_html() {
+function ag_display_link_options_page_html() {
     ?>
     <div class="wrap">
         <h1>Display the Link's Content</h1>
         <form action="" method="POST" id="display_link_form">
-        <input type="text" name="link_field" id="link_field" value="https://www.amazon.com/Digital-SLRs-Cameras-Photo/b/ref=dp_bc_5?ie=UTF8&node=3017941" style="width: 700px;">
+        <input type="text" name="link_field" id="link_field" value="<?php echo get_transient( 'link' ) ?>" style="width: 700px;">
+	    <br>
+	    <br>
+        <label for="expire_time">Transient expire time in seconds:</label>
+        <input type="text" name="expire_time" id="expire_time" value="60">
 	    <br>
 	    <br>
         <input type="submit" class="display_link" value="Display">
@@ -34,24 +39,26 @@ function display_link_options_page_html() {
 	<?php
 }
 
-add_action("wp_ajax_display_content", "display_content");
+add_action("wp_ajax_ag_display_content", "ag_display_content");
 
-function display_content() {
+function ag_display_content() {
     $link = $_POST['link'];
     
+    $expire = intval( absint( $_POST['expire_time'] ));
+
     if ( $link == get_transient( 'link' ) ) {
         $contents = get_transient( 'link_contents' );
 
         if ( false === $contents ) {
             $contents = file_get_contents($link);
-            set_transient( 'link_contents', $contents, HOUR_IN_SECONDS );
+            set_transient( 'link_contents', $contents, $expire );
         }
 
         echo $contents;
     } else {
-        set_transient( 'link', $link, HOUR_IN_SECONDS );
+        set_transient( 'link', $link, $expire );
         $contents = file_get_contents($link);
-        set_transient( 'link_contents', $contents, HOUR_IN_SECONDS );
+        set_transient( 'link_contents', $contents, $expire );
     
         echo $contents;
     }
