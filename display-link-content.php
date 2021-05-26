@@ -22,8 +22,8 @@ function display_link_options_page_html() {
     ?>
     <div class="wrap">
         <h1>Display the Link's Content</h1>
-        <form action="<?php echo admin_url('admin-post.php'); ?>" method="POST" id="display_link_form">
-        <input type="text" name="link_field" id="link_field" value="" style="width: 700px;">
+        <form action="" method="POST" id="display_link_form">
+        <input type="text" name="link_field" id="link_field" value="https://www.amazon.com/Digital-SLRs-Cameras-Photo/b/ref=dp_bc_5?ie=UTF8&node=3017941" style="width: 700px;">
 	    <br>
 	    <br>
         <input type="submit" class="display_link" value="Display">
@@ -39,23 +39,21 @@ add_action("wp_ajax_display_content", "display_content");
 function display_content() {
     $link = $_POST['link'];
     
-    if ( strpos( strval($link), 'amazon.com' ) ) {
-        if ( $link == get_transient( 'link' ) ) {
-            $contents = get_transient( 'link_contents' );
-    
-            if ( false === $contents ) {
-                $contents = file_get_contents($link);
-                set_transient( 'link_contents', $contents, HOUR_IN_SECONDS );
-            }
-        
-            echo $contents;
-        } else {
-            set_transient( 'link', $link, HOUR_IN_SECONDS );
+    if ( $link == get_transient( 'link' ) ) {
+        $contents = get_transient( 'link_contents' );
+
+        if ( false === $contents ) {
             $contents = file_get_contents($link);
             set_transient( 'link_contents', $contents, HOUR_IN_SECONDS );
-        
-            echo $contents;
         }
+
+        echo $contents;
+    } else {
+        set_transient( 'link', $link, HOUR_IN_SECONDS );
+        $contents = file_get_contents($link);
+        set_transient( 'link_contents', $contents, HOUR_IN_SECONDS );
+    
+        echo $contents;
     }
 	wp_die();
 }
