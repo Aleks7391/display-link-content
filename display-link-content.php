@@ -35,7 +35,7 @@ function ag_display_link_options_page_html() {
         </form>
     </div>
 	<br>
-	<div id='content_field'></div>
+	<div id='content_field' style='contain: content'></div>
 	<?php
 }
 
