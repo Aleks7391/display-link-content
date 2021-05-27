@@ -65,9 +65,9 @@ function ag_display_content() {
 	wp_die();
 }
 
-add_action( 'init', 'my_script_enqueuer' );
+add_action( 'init', 'ag_display_link_script_enqueuer' );
 
-function my_script_enqueuer() {
+function ag_display_link_script_enqueuer() {
    wp_register_script( "display_link_script", WP_PLUGIN_URL.'/display-link-content/display_link_script.js', array('jquery') );
    wp_localize_script( 'display_link_script', 'myAjax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' )));        
 
